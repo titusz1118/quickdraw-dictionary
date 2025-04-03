@@ -15,18 +15,44 @@
     <div id="imageDisplay"></div>
 
     <script>
-        console.log("JavaScript 已載入"); // 檢查 JS
-        const imageDict = {
-            "車": "https://picsum.photos/300",
-            "貓咪": "https://picsum.photos/300",
-            "交通燈號": "https://picsum.photos/300"
-        };
+        const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE"; // 換成你嘅 Google API 金鑰
+        const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH"; // 換成你嘅 Google Drive 資料夾 ID
+        let imageDict = {};
+
+        console.log("JavaScript 已載入");
+        function loadImages() {
+            console.log("開始載入圖片...");
+            fetch(`https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${apiKey}`)
+                .then(response => {
+                    console.log("API 回應狀態:", response.status);
+                    if (!response.ok) {
+                        throw new Error('API 請求失敗，狀態碼: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("API 回應資料:", data);
+                    if (data.files && data.files.length > 0) {
+                        data.files.forEach(file => {
+                            const fileName = file.name.replace('.png', '');
+                            imageDict[fileName] = `https://images.weserv.nl/?url=https://drive.google.com/uc?export=view&id=${file.id}`;
+                        });
+                        console.log("圖片字典已載入:", imageDict);
+                    } else {
+                        console.log("無搵到圖片檔案！");
+                    }
+                })
+                .catch(error => {
+                    console.error('載入錯誤:', error);
+                    alert('載入圖片失敗，請檢查 API 或資料夾設定！');
+                });
+        }
 
         function showImage() {
             const keyword = document.getElementById("keyword").value;
             const imageDisplay = document.getElementById("imageDisplay");
 
-            console.log("按鈕被按，關鍵字:", keyword); // 除錯
+            console.log("按鈕被按，關鍵字:", keyword);
             const imageUrl = imageDict[keyword];
             console.log("圖片 URL:", imageUrl);
 
@@ -36,6 +62,8 @@
                 imageDisplay.innerHTML = "搵唔到呢個關鍵字嘅圖片！";
             }
         }
+
+        window.onload = loadImages;
     </script>
 </body>
 </html>
