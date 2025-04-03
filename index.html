@@ -8,10 +8,22 @@
     <style>
         body { 
             text-align: center; 
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', sans-serif; 
         }
         #imageDisplay { 
             margin-top: 20px; 
+        }
+        footer { 
+            margin-top: 20px; 
+            font-size: 14px; 
+            color: #666; 
+        }
+        footer a { 
+            color: #007bff; 
+            text-decoration: none; 
+        }
+        footer a:hover { 
+            text-decoration: underline; 
         }
     </style>
     <!-- 引入 opencc-js -->
@@ -19,14 +31,22 @@
 </head>
 <body>
     <h1>QuickDraw 字典</h1>
-    <input type="text" id="keyword" placeholder="輸入關鍵字">
+    <input type="text" id="keyword" placeholder="輸入關鍵字，例如：網絡 或 网络">
     <button onclick="showImage()">搵圖片</button>
     <div id="imageDisplay"></div>
+    <footer>
+        此網站由 
+        <a href="https://youtube.com/@Titusz1118" target="_blank">@Titusz1118</a> 
+        和 
+        <a href="https://youtube.com/@bear-1128" target="_blank">@bear-1128</a> 
+        光榮製作
+    </footer>
 
     <script>
-        const apiKey = "YOUR_API_KEY"; // 換成你嘅 API 金鑰
-        const folderId = "YOUR_FOLDER_ID"; // 換成你嘅資料夾 ID
-        let imageDict = {};
+        // 確保 OpenCC 已載入
+        if (typeof OpenCC === 'undefined') {
+            console.error("OpenCC 未載入，請檢查網絡或腳本路徑！");
+        }
 
         // 繁簡轉換器（簡體 -> 繁體香港標準）
         const converter = OpenCC.Converter({ from: 'cn', to: 'hk' });
@@ -43,14 +63,17 @@
             "牀": "床"         // 異體字
         };
 
+        const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE"; // 換成你嘅 API 金鑰
+        const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH"; // 換成你嘅資料夾 ID
+        let imageDict = {};
+
         function normalizeKeyword(input) {
-            // 先將簡體轉為繁體（香港）
-            let traditional = converter(input);
-            // 再將地區用語轉為香港標準
-            return regionalMapping[traditional] || traditional;
+            let traditional = converter(input); // 先將簡體轉為繁體（香港）
+            return regionalMapping[traditional] || traditional; // 再將地區用語轉為香港標準
         }
 
         console.log("JavaScript 已載入");
+
         function loadImages() {
             console.log("開始載入圖片...");
             fetch(`https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${apiKey}`)
@@ -83,8 +106,7 @@
             const keyword = document.getElementById("keyword").value;
             const imageDisplay = document.getElementById("imageDisplay");
 
-            // 正規化關鍵字（簡體 -> 繁體 -> 香港用語）
-            const normalizedKeyword = normalizeKeyword(keyword);
+            const normalizedKeyword = normalizeKeyword(keyword); // 正規化關鍵字
 
             console.log("按鈕被按，原始關鍵字:", keyword);
             console.log("正規化後關鍵字:", normalizedKeyword);
