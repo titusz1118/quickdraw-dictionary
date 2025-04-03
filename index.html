@@ -15,12 +15,13 @@
     <div id="imageDisplay"></div>
 
     <script>
+        console.log("JavaScript 已載入"); // 檢查 JS 有冇跑
         function showImage() {
             const keyword = document.getElementById("keyword").value;
             const imageDisplay = document.getElementById("imageDisplay");
 
-            console.log("按鈕被按，關鍵字:", keyword); // 除錯
-            imageDisplay.innerHTML = "你輸入咗: " + keyword; // 簡單反應
+            console.log("按鈕被按，關鍵字:", keyword);
+            imageDisplay.innerHTML = "你輸入咗: " + keyword;
         }
     </script>
 </body>
