@@ -26,8 +26,8 @@
             text-decoration: underline; 
         }
     </style>
-    <!-- 引入 opencc-js -->
-    <script src="https://unpkg.com/opencc-js@1.0.5/dist/umd/opencc-js.js"></script>
+    <!-- 引入本地 opencc-js -->
+    <script src="./opencc-js.js"></script>
 </head>
 <body>
     <h1>QuickDraw 字典</h1>
@@ -45,8 +45,14 @@
     <script>
         // 確保 OpenCC 已載入
         if (typeof OpenCC === 'undefined') {
-            console.error("OpenCC 未載入，請檢查網絡或腳本路徑！");
+            console.error("OpenCC 未載入，請確認 opencc-js.js 已正確上傳到倉庫！");
+            alert("OpenCC 未載入，繁簡轉換功能將不可用！");
         }
+
+        // 全局定義
+        const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE"; // 換成你嘅 API 金鑰
+        const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH"; // 換成你嘅資料夾 ID
+        let imageDict = {};
 
         // 繁簡轉換器（簡體 -> 繁體香港標準）
         const converter = OpenCC.Converter({ from: 'cn', to: 'hk' });
@@ -62,10 +68,6 @@
             "猫咪": "貓咪",    // 大陸
             "牀": "床"         // 異體字
         };
-
-        const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE"; // 換成你嘅 API 金鑰
-        const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH"; // 換成你嘅資料夾 ID
-        let imageDict = {};
 
         function normalizeKeyword(input) {
             let traditional = converter(input); // 先將簡體轉為繁體（香港）
