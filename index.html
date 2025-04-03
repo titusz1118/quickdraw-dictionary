@@ -15,8 +15,8 @@
     <div id="imageDisplay"></div>
 
     <script>
-        const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE"; // 換成你嘅 Google API 金鑰
-        const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH"; // 換成你嘅 Google Drive 資料夾 ID
+        const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE"; // 換成你嘅 API 金鑰
+        const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH"; // 換成你嘅資料夾 ID
         let imageDict = {};
 
         console.log("JavaScript 已載入");
@@ -35,7 +35,7 @@
                     if (data.files && data.files.length > 0) {
                         data.files.forEach(file => {
                             const fileName = file.name.replace('.png', '');
-                            imageDict[fileName] = `https://images.weserv.nl/?url=https://drive.google.com/uc?export=view&id=${file.id}`;
+                            imageDict[fileName] = `https://drive.google.com/uc?export=view&id=${file.id}`;
                         });
                         console.log("圖片字典已載入:", imageDict);
                     } else {
@@ -57,7 +57,7 @@
             console.log("圖片 URL:", imageUrl);
 
             if (imageUrl) {
-                imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${keyword}" style="max-width: 300px;" onerror="this.src='https://picsum.photos/300?text=載入失敗'">`;
+                imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${keyword}" style="max-width: 300px;" onerror="console.log('圖片載入失敗:', this.src); this.src='https://picsum.photos/300?text=載入失敗'">`;
             } else {
                 imageDisplay.innerHTML = "搵唔到呢個關鍵字嘅圖片！";
             }
