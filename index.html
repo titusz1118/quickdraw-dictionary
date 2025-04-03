@@ -18,6 +18,7 @@
 const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE"; // 換成你嘅 API 金鑰
 const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH"; // 換成你嘅 Google Drive 資料夾 ID
 let imageDict = {};
+let imagesLoaded = false;
 
 function loadImages() {
     fetch(`https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${apiKey}`)
@@ -32,7 +33,8 @@ function loadImages() {
                 const fileName = file.name.replace('.png', '');
                 imageDict[fileName] = `https://images.weserv.nl/?url=https://drive.google.com/uc?export=view&id=${file.id}`;
             });
-            console.log("圖片字典:", imageDict); // 喺 Console 檢查
+            imagesLoaded = true;
+            console.log("圖片字典:", imageDict);
         })
         .catch(error => {
             console.error('錯誤:', error);
@@ -43,9 +45,14 @@ function loadImages() {
 function showImage() {
     const keyword = document.getElementById("keyword").value;
     const imageDisplay = document.getElementById("imageDisplay");
-    const imageUrl = imageDict[keyword];
 
-    console.log("關鍵字:", keyword, "URL:", imageUrl); // 除錯
+    if (!imagesLoaded) {
+        imageDisplay.innerHTML = "圖片仲未載入，請稍等！";
+        return;
+    }
+
+    const imageUrl = imageDict[keyword];
+    console.log("關鍵字:", keyword, "URL:", imageUrl);
     if (imageUrl) {
         imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${keyword}" style="max-width: 300px;" onerror="this.src='https://via.placeholder.com/300?text=圖片載入失敗'">`;
     } else {
