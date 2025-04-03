@@ -15,26 +15,12 @@
     <div id="imageDisplay"></div>
 
     <script>
-        // 簡單嘅測試字典，唔用 API
-        const imageDict = {
-            "車": "https://via.placeholder.com/300?text=車",
-            "貓咪": "https://via.placeholder.com/300?text=貓咪",
-            "交通燈號": "https://via.placeholder.com/300?text=交通燈號"
-        };
-
         function showImage() {
             const keyword = document.getElementById("keyword").value;
             const imageDisplay = document.getElementById("imageDisplay");
 
-            console.log("按鈕觸發，關鍵字:", keyword); // 除錯
-            const imageUrl = imageDict[keyword];
-            console.log("圖片 URL:", imageUrl);
-
-            if (imageUrl) {
-                imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${keyword}" style="max-width: 300px;">`;
-            } else {
-                imageDisplay.innerHTML = "搵唔到呢個關鍵字嘅圖片！";
-            }
+            console.log("按鈕被按，關鍵字:", keyword); // 除錯
+            imageDisplay.innerHTML = "你輸入咗: " + keyword; // 簡單反應
         }
     </script>
 </body>
