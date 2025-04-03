@@ -7,8 +7,6 @@
         body { text-align: center; font-family: Arial, sans-serif; }
         #imageDisplay { margin-top: 20px; }
     </style>
-    <!-- 引入 opencc-js -->
-    <script src="https://unpkg.com/opencc-js@1.0.5/dist/umd/opencc-js.js"></script>
 </head>
 <body>
     <h1>Quickdraw 字典</h1>
@@ -20,9 +18,6 @@
         const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE"; // 換成你嘅 API 金鑰
         const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH"; // 換成你嘅資料夾 ID
         let imageDict = {};
-
-        // 繁簡轉換器（簡體 -> 繁體）
-        const converter = OpenCC.Converter({ from: 'cn', to: 'hk' });
 
         console.log("JavaScript 已載入");
         function loadImages() {
@@ -57,16 +52,12 @@
             const keyword = document.getElementById("keyword").value;
             const imageDisplay = document.getElementById("imageDisplay");
 
-            // 將輸入轉為繁體
-            const traditionalKeyword = converter(keyword);
-
-            console.log("按鈕被按，原始關鍵字:", keyword);
-            console.log("轉換後關鍵字:", traditionalKeyword);
-            const imageUrl = imageDict[traditionalKeyword];
+            console.log("按鈕被按，關鍵字:", keyword);
+            const imageUrl = imageDict[keyword];
             console.log("圖片 URL:", imageUrl);
 
             if (imageUrl) {
-                imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${traditionalKeyword}" style="max-width: 800px;" onerror="console.log('圖片載入失敗:', this.src); this.src='https://picsum.photos/300?text=載入失敗'">`;
+                imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${keyword}" style="max-width: 800px;" onerror="console.log('圖片載入失敗:', this.src); this.src='https://picsum.photos/300?text=載入失敗'">`;
             } else {
                 imageDisplay.innerHTML = "搵唔到呢個關鍵字嘅圖片！";
             }
