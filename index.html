@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <title>Quickdraw 字典</title>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; }
+        #imageDisplay { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Quickdraw 字典</h1>
+    <input type="text" id="keyword" placeholder="輸入關鍵字，例如：車">
+    <button onclick="showImage()">搵圖片</button>
+    <div id="imageDisplay"></div>
+
+    <script>
+        // 將你嘅 API 金鑰同資料夾 ID 填入呢度
+        const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE"; // 換成你嘅 Google API 金鑰
+        const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH"; // 換成你 Google Drive 資料夾 ID（喺分享連結入面搵，例如 abc123xyz）
+
+        // 喺頁面載入時獲取所有圖片
+        let imageDict = {};
+        fetch(`https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${apiKey}`)
+            .then(response => response.json())
+            .then(data => {
+                data.files.forEach(file => {
+                    const fileName = file.name.replace('.png', ''); // 移除 .png 後綴
+                    imageDict[fileName] = `https://drive.google.com/uc?export=download&id=${file.id}`;
+                });
+            })
+            .catch(error => console.error('錯誤:', error));
+
+        function showImage() {
+            const keyword = document.getElementById("keyword").value;
+            const imageDisplay = document.getElementById("imageDisplay");
+            const imageUrl = imageDict[keyword];
+
+            if (imageUrl) {
+                imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${keyword}" style="max-width: 300px;">`;
+            } else {
+                imageDisplay.innerHTML = "搵唔到呢個關鍵字嘅圖片！";
+            }
+        }
+    </script>
+</body>
+</html>
