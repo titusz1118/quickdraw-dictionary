@@ -15,58 +15,27 @@
     <div id="imageDisplay"></div>
 
     <script>
-const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE"; // 換成你嘅 API 金鑰
-const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH"; // 換成你嘅 Google Drive 資料夾 ID
-let imageDict = {};
-let imagesLoaded = false;
+        // 簡單嘅測試字典，唔用 API
+        const imageDict = {
+            "車": "https://via.placeholder.com/300?text=車",
+            "貓咪": "https://via.placeholder.com/300?text=貓咪",
+            "交通燈號": "https://via.placeholder.com/300?text=交通燈號"
+        };
 
-function loadImages() {
-    console.log("開始載入圖片...");
-    fetch(`https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${apiKey}`)
-        .then(response => {
-            console.log("API 回應狀態:", response.status);
-            if (!response.ok) {
-                throw new Error('API 請求失敗，狀態碼: ' + response.status);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log("API 回應資料:", data);
-            if (data.files && data.files.length > 0) {
-                data.files.forEach(file => {
-                    const fileName = file.name.replace('.png', '');
-                    imageDict[fileName] = `https://images.weserv.nl/?url=https://drive.google.com/uc?export=view&id=${file.id}`;
-                });
-                imagesLoaded = true;
-                console.log("圖片字典已載入:", imageDict);
+        function showImage() {
+            const keyword = document.getElementById("keyword").value;
+            const imageDisplay = document.getElementById("imageDisplay");
+
+            console.log("按鈕觸發，關鍵字:", keyword); // 除錯
+            const imageUrl = imageDict[keyword];
+            console.log("圖片 URL:", imageUrl);
+
+            if (imageUrl) {
+                imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${keyword}" style="max-width: 300px;">`;
             } else {
-                console.log("無搵到圖片檔案！");
+                imageDisplay.innerHTML = "搵唔到呢個關鍵字嘅圖片！";
             }
-        })
-        .catch(error => {
-            console.error('載入錯誤:', error);
-            alert('載入圖片失敗，請檢查 API 金鑰或資料夾 ID！');
-        });
-}
-
-function showImage() {
-    const keyword = document.getElementById("keyword").value;
-    const imageDisplay = document.getElementById("imageDisplay");
-
-    console.log("按鈕觸發，關鍵字:", keyword);
-    if (!imagesLoaded) {
-        imageDisplay.innerHTML = "圖片仲未載入，請稍等！";
-        console.log("圖片未載入");
-        return;
-    }
-
-    const imageUrl = imageDict[keyword];
-    console.log("圖片 URL:", imageUrl);
-    if (imageUrl) {
-        imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${keyword}" style="max-width: 300px;" onerror="this.src='https://via.placeholder.com/300?text=圖片載入失敗'">`;
-    } else {
-        imageDisplay.innerHTML = "搵唔到呢個關鍵字嘅圖片！";
-    }
-}
-
-window.onload = loadImages;
+        }
+    </script>
+</body>
+</html>
