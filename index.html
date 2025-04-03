@@ -2,13 +2,13 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <title>Quickdraw 字典</title>
+    <title>QuickDraw 字典</title>
     <!-- 引入 Inter 字體 -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
     <style>
         body { 
             text-align: center; 
-            font-family: 'Inter', sans-serif; /* 用 Inter 代替 Arial */
+            font-family: 'Inter', sans-serif;
         }
         #imageDisplay { 
             margin-top: 20px; 
@@ -18,14 +18,14 @@
     <script src="https://unpkg.com/opencc-js@1.0.5/dist/umd/opencc-js.js"></script>
 </head>
 <body>
-    <h1>Quickdraw 字典</h1>
-    <input type="text" id="keyword" placeholder="輸入關鍵字，例如：網絡 或 网络">
+    <h1>QuickDraw 字典</h1>
+    <input type="text" id="keyword" placeholder="輸入關鍵字">
     <button onclick="showImage()">搵圖片</button>
     <div id="imageDisplay"></div>
 
     <script>
-        const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE"; // 換成你嘅 API 金鑰
-        const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH"; // 換成你嘅資料夾 ID
+        const apiKey = "YOUR_API_KEY"; // 換成你嘅 API 金鑰
+        const folderId = "YOUR_FOLDER_ID"; // 換成你嘅資料夾 ID
         let imageDict = {};
 
         // 繁簡轉換器（簡體 -> 繁體香港標準）
