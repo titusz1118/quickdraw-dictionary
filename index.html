@@ -35,7 +35,7 @@
                     if (data.files && data.files.length > 0) {
                         data.files.forEach(file => {
                             const fileName = file.name.replace('.png', '');
-                            imageDict[fileName] = `https://drive.google.com/uc?export=view&id=${file.id}`;
+                            imageDict[fileName] = `https://drive.google.com/thumbnail?id=${file.id}`;
                         });
                         console.log("圖片字典已載入:", imageDict);
                     } else {
