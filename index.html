@@ -2,8 +2,7 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <title>Quickdraw 字典</title>
-    <!-- 引入 Inter 字體 -->
+    <title>QuickDraw 字典</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
     <style>
         body {
@@ -22,12 +21,10 @@
             color: #333;
             font-weight: 500;
             margin-bottom: 20px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         .input-container {
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -42,14 +39,14 @@
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.5);
             backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
             outline: none;
             width: 200px;
-            transition: all 0.3s ease;
         }
         input[type="text"]:focus {
             background: rgba(255, 255, 255, 0.7);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"]::placeholder {
+            color: rgba(0, 0, 0, 0.5);
         }
         button {
             padding: 10px 20px;
@@ -61,23 +58,24 @@
             color: white;
             cursor: pointer;
             backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
         }
         button:hover {
             background: rgba(0, 123, 255, 1);
-            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
         }
         #imageDisplay {
             margin-top: 30px;
             padding: 20px;
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             border-radius: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.3);
             max-width: 850px;
+            min-height: 50px;
+            visibility: hidden;
+        }
+        #imageDisplay.active {
+            visibility: visible;
         }
         #imageDisplay img {
             max-width: 800px;
@@ -89,7 +87,6 @@
             color: #666;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
             padding: 10px 20px;
             border-radius: 12px;
         }
@@ -103,9 +100,9 @@
     </style>
 </head>
 <body>
-    <h1>Quickdraw 字典</h1>
+    <h1>QuickDraw 字典</h1>
     <div class="input-container">
-        <input type="text" id="keyword" placeholder="輸入關鍵字，例如：網絡">
+        <input type="text" id="keyword" placeholder="請輸入圖片關鍵字">
         <button onclick="showImage()">搵圖片</button>
     </div>
     <div id="imageDisplay"></div>
@@ -118,75 +115,56 @@
     </footer>
 
     <script>
-        // 全局定義
-        const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE"; // 換成你嘅 API 金鑰
-        const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH"; // 換成你嘅資料夾 ID
+        const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE";
+        const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH";
         let imageDict = {};
 
-        // 移除繁簡轉換，直接用原始輸入
         function normalizeKeyword(input) {
-            return input.trim(); // 移除首尾空格
+            return input.trim();
         }
 
-        console.log("JavaScript 已載入");
-
-        // 支援分頁嘅載入圖片函數
-        async function loadImages(pageToken = '') {
-            console.log("開始載入圖片...", pageToken ? `分頁: ${pageToken}` : "第一頁");
-            const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${apiKey}&pageToken=${pageToken}&fields=nextPageToken,files(id,name)`;
-            console.log("請求 URL:", url); // 顯示完整 URL 用於診斷
-
+        async function loadImages(folderId, pageToken = '') {
+            const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${apiKey}&pageToken=${pageToken}&fields=nextPageToken,files(id,name,mimeType)`;
             try {
                 const response = await fetch(url);
-                console.log("API 回應狀態:", response.status);
                 if (!response.ok) {
-                    const errorText = await response.text(); // 獲取詳細錯誤訊息
-                    throw new Error(`API 請求失敗，狀態碼: ${response.status}，錯誤訊息: ${errorText}`);
+                    const errorText = await response.text();
+                    throw new Error(`API 請求失敗: ${response.status} - ${errorText}`);
                 }
                 const data = await response.json();
-                console.log("API 回應資料:", data);
-
                 if (data.files && data.files.length > 0) {
                     data.files.forEach(file => {
-                        const fileName = file.name.replace('.png', '').trim();
-                        imageDict[fileName] = `https://drive.google.com/thumbnail?id=${file.id}&sz=s1000`;
+                        if (file.mimeType.startsWith('image/')) {
+                            const fileName = file.name.replace('.png', '').trim();
+                            imageDict[fileName] = `https://drive.google.com/thumbnail?id=${file.id}&sz=s1000`;
+                        }
                     });
-                    console.log("當前圖片字典:", imageDict);
-                } else {
-                    console.log("無搵到圖片檔案，可能資料夾為空或無權限！");
                 }
-
-                // 檢查有無下一頁
                 if (data.nextPageToken) {
-                    await loadImages(data.nextPageToken); // 遞迴載入下一頁
-                } else {
-                    console.log("所有圖片載入完成，總數:", Object.keys(imageDict).length);
+                    await loadImages(folderId, data.nextPageToken);
                 }
             } catch (error) {
                 console.error('載入錯誤:', error);
-                alert(`載入圖片失敗，請檢查 API 或資料夾設定！詳細錯誤: ${error.message}`);
+                alert(`載入圖片失敗: ${error.message}`);
             }
         }
 
         function showImage() {
             const keyword = document.getElementById("keyword").value;
             const imageDisplay = document.getElementById("imageDisplay");
-
             const normalizedKeyword = normalizeKeyword(keyword);
-
-            console.log("按鈕被按，關鍵字:", normalizedKeyword);
             const imageUrl = imageDict[normalizedKeyword];
-            console.log("圖片 URL:", imageUrl);
 
             if (imageUrl) {
-                imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${normalizedKeyword}" onerror="console.log('圖片載入失敗:', this.src); this.src='https://picsum.photos/300?text=載入失敗'">`;
+                imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${normalizedKeyword}" onerror="this.src='https://picsum.photos/300?text=載入失敗'">`;
+                imageDisplay.classList.add('active');
             } else {
                 imageDisplay.innerHTML = "搵唔到呢個關鍵字嘅圖片！";
-                console.log("可用關鍵字:", Object.keys(imageDict));
+                imageDisplay.classList.add('active');
             }
         }
 
-        window.onload = () => loadImages();
+        window.onload = () => loadImages(folderId);
     </script>
 </body>
 </html>
