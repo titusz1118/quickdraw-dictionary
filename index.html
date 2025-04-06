@@ -119,8 +119,8 @@
 
     <script>
         // 全局定義
-        const apiKey = "YOUR_API_KEY"; // 換成你嘅 API 金鑰
-        const folderId = "YOUR_FOLDER_ID"; // 換成你嘅資料夾 ID
+        const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE"; // 換成你嘅 API 金鑰
+        const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH"; // 換成你嘅資料夾 ID
         let imageDict = {};
 
         // 移除繁簡轉換，直接用原始輸入
@@ -133,24 +133,27 @@
         // 支援分頁嘅載入圖片函數
         async function loadImages(pageToken = '') {
             console.log("開始載入圖片...", pageToken ? `分頁: ${pageToken}` : "第一頁");
-            const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${apiKey}&pageToken=${pageToken}`;
+            const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${apiKey}&pageToken=${pageToken}&fields=nextPageToken,files(id,name)`;
+            console.log("請求 URL:", url); // 顯示完整 URL 用於診斷
+
             try {
                 const response = await fetch(url);
                 console.log("API 回應狀態:", response.status);
                 if (!response.ok) {
-                    throw new Error('API 請求失敗，狀態碼: ' + response.status);
+                    const errorText = await response.text(); // 獲取詳細錯誤訊息
+                    throw new Error(`API 請求失敗，狀態碼: ${response.status}，錯誤訊息: ${errorText}`);
                 }
                 const data = await response.json();
                 console.log("API 回應資料:", data);
 
                 if (data.files && data.files.length > 0) {
                     data.files.forEach(file => {
-                        const fileName = file.name.replace('.png', '').trim(); // 移除 .png 同空格
+                        const fileName = file.name.replace('.png', '').trim();
                         imageDict[fileName] = `https://drive.google.com/thumbnail?id=${file.id}&sz=s1000`;
                     });
                     console.log("當前圖片字典:", imageDict);
                 } else {
-                    console.log("無搵到圖片檔案！");
+                    console.log("無搵到圖片檔案，可能資料夾為空或無權限！");
                 }
 
                 // 檢查有無下一頁
@@ -161,7 +164,7 @@
                 }
             } catch (error) {
                 console.error('載入錯誤:', error);
-                alert('載入圖片失敗，請檢查 API 或資料夾設定！');
+                alert(`載入圖片失敗，請檢查 API 或資料夾設定！詳細錯誤: ${error.message}`);
             }
         }
 
@@ -169,7 +172,7 @@
             const keyword = document.getElementById("keyword").value;
             const imageDisplay = document.getElementById("imageDisplay");
 
-            const normalizedKeyword = normalizeKeyword(keyword); // 直接用原始輸入，去除空格
+            const normalizedKeyword = normalizeKeyword(keyword);
 
             console.log("按鈕被按，關鍵字:", normalizedKeyword);
             const imageUrl = imageDict[normalizedKeyword];
@@ -179,7 +182,7 @@
                 imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${normalizedKeyword}" onerror="console.log('圖片載入失敗:', this.src); this.src='https://picsum.photos/300?text=載入失敗'">`;
             } else {
                 imageDisplay.innerHTML = "搵唔到呢個關鍵字嘅圖片！";
-                console.log("可用關鍵字:", Object.keys(imageDict)); // 顯示所有可用檔名
+                console.log("可用關鍵字:", Object.keys(imageDict));
             }
         }
 
