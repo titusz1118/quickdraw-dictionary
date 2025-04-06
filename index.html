@@ -5,8 +5,102 @@
     <title>Quickdraw 字典</title>
     <!-- 引入 Inter 字體 -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
-    <!-- 引入 style.css -->
-    <link rel="stylesheet" href="/style.css">
+    <style>
+        body {
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f2f5, #e0e4e8); /* 柔和漸變背景 */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .input-container {
+            background: rgba(255, 255, 255, 0.2); /* 半透明毛玻璃 */
+            backdrop-filter: blur(10px); /* 模糊效果 */
+            -webkit-backdrop-filter: blur(10px); /* 兼容 Safari */
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        input[type="text"] {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            outline: none;
+            width: 200px;
+            transition: all 0.3s ease;
+        }
+        input[type="text"]:focus {
+            background: rgba(255, 255, 255, 0.7);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            border-radius: 12px;
+            background: rgba(0, 123, 255, 0.8); /* 藍色毛玻璃按鈕 */
+            color: white;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: rgba(0, 123, 255, 1);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+        #imageDisplay {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            max-width: 850px;
+        }
+        #imageDisplay img {
+            max-width: 800px;
+            border-radius: 10px;
+        }
+        footer {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #666;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            padding: 10px 20px;
+            border-radius: 12px;
+        }
+        footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <h1>Quickdraw 字典</h1>
