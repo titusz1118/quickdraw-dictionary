@@ -117,44 +117,56 @@
     <script>
         const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE";
         const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH";
+        const sheetId = "1CGnFhxQYssC98gQpv8w-7iI17fVoik3tOpa3D77wGGY"; // 你嘅 Sheet ID
         let imageDict = {};
+        let nameMapping = {};
 
-        function normalizeKeyword(input) {
-            return input.trim();
-        }
-
-        async function loadImages(folderId, pageToken = '') {
-            const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${apiKey}&pageToken=${pageToken}&fields=nextPageToken,files(id,name,mimeType)`;
+        async function loadNameMapping() {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A1:D224?key=${apiKey}`;
             try {
                 const response = await fetch(url);
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`API 請求失敗: ${response.status} - ${errorText}`);
-                }
+                if (!response.ok) throw new Error("Sheets API 失敗");
                 const data = await response.json();
-                if (data.files && data.files.length > 0) {
-                    data.files.forEach(file => {
-                        if (file.mimeType.startsWith('image/')) {
-                            const fileName = file.name.replace('.png', '').trim();
-                            imageDict[fileName] = `https://drive.google.com/thumbnail?id=${file.id}&sz=s1000`;
-                        }
-                    });
-                }
-                if (data.nextPageToken) {
-                    await loadImages(folderId, data.nextPageToken);
-                }
+                const rows = data.values;
+                rows.shift(); // 移除表頭
+                rows.forEach(row => {
+                    const [driveName, cnName, hkName, twName] = row;
+                    nameMapping[driveName] = driveName; // 直接映射自己
+                    if (cnName) nameMapping[cnName] = driveName;
+                    if (hkName) nameMapping[hkName] = driveName;
+                    if (twName) nameMapping[twName] = driveName;
+                });
             } catch (error) {
-                console.error('載入錯誤:', error);
-                alert(`載入圖片失敗: ${error.message}`);
+                console.error("載入名稱映射失敗:", error);
             }
         }
 
-        function showImage() {
+        function normalizeKeyword(input) {
+            const rawInput = input.trim();
+            return nameMapping[rawInput] || rawInput; // 直接用映射，無轉換回原始輸入
+        }
+
+        async function loadImages() {
+            let pageToken = '';
+            do {
+                const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${apiKey}&pageToken=${pageToken}&fields=nextPageToken,files(id,name,mimeType)`;
+                const response = await fetch(url);
+                const data = await response.json();
+                data.files.forEach(file => {
+                    if (file.mimeType.startsWith('image/')) {
+                        const fileName = file.name.replace('.png', '').trim();
+                        imageDict[fileName] = `https://drive.google.com/thumbnail?id=${file.id}&sz=s1000`;
+                    }
+                });
+                pageToken = data.nextPageToken || '';
+            } while (pageToken);
+        }
+
+        async function showImage() {
             const keyword = document.getElementById("keyword").value;
             const imageDisplay = document.getElementById("imageDisplay");
             const normalizedKeyword = normalizeKeyword(keyword);
             const imageUrl = imageDict[normalizedKeyword];
-
             if (imageUrl) {
                 imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${normalizedKeyword}" onerror="this.src='https://picsum.photos/300?text=載入失敗'">`;
                 imageDisplay.classList.add('active');
@@ -164,7 +176,10 @@
             }
         }
 
-        window.onload = () => loadImages(folderId);
+        window.onload = async () => {
+            await loadNameMapping();
+            await loadImages();
+        };
     </script>
 </body>
 </html>
