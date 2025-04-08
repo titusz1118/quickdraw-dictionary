@@ -5,10 +5,41 @@
     <title>QuickDraw 字典</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
     <style>
+        :root {
+            --bg-start: #f0f2f5;
+            --bg-end: #e0e4e8;
+            --text-color: #333;
+            --container-bg: rgba(255, 255, 255, 0.2);
+            --input-bg: rgba(255, 255, 255, 0.5);
+            --input-focus-bg: rgba(255, 255, 255, 0.7);
+            --button-bg: rgba(0, 123, 255, 0.8);
+            --button-hover-bg: rgba(0, 123, 255, 1);
+            --border-color: rgba(255, 255, 255, 0.3);
+            --shadow-color: rgba(0, 0, 0, 0.15);
+            --footer-bg: rgba(255, 255, 255, 0.1);
+            --footer-text: #666;
+            --link-color: #007bff;
+            --toggle-color: #007bff;
+        }
+        body.dark {
+            --bg-start: #1e1e1e;
+            --bg-end: #2d2d2d;
+            --text-color: #e0e0e0;
+            --container-bg: rgba(40, 40, 40, 0.2);
+            --input-bg: rgba(60, 60, 60, 0.5);
+            --input-focus-bg: rgba(80, 80, 80, 0.7);
+            --button-bg: rgba(80, 80, 80, 0.8);
+            --button-hover-bg: rgba(100, 100, 100, 1);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --footer-bg: rgba(40, 40, 40, 0.1);
+            --footer-text: #aaa;
+            --link-color: #d0d0d0;
+            --toggle-color: #d0d0d0;
+        }
         body {
             text-align: center;
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f0f2f5, #e0e4e8);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -16,37 +47,47 @@
             align-items: center;
             margin: 0;
             padding: 20px;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            transition: background 0.8s ease-in-out;
         }
         h1 {
-            color: #333;
             font-weight: 500;
             margin-bottom: 20px;
+            color: var(--text-color);
+            text-shadow: 0 2px 4px var(--shadow-color);
+            transition: color 0.8s ease-in-out, text-shadow 0.8s ease-in-out;
         }
         .input-container {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
+            background: var(--container-bg);
+            backdrop-filter: blur(15px);
             border-radius: 20px;
             padding: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px var(--shadow-color);
             display: flex;
             gap: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid var(--border-color);
+            transition: background 0.8s ease-in-out, box-shadow 0.8s ease-in-out, border-color 0.8s ease-in-out;
         }
         input[type="text"] {
             padding: 10px 15px;
             font-size: 16px;
             border: none;
             border-radius: 12px;
-            background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
             outline: none;
             width: 200px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            transition: background 0.8s ease-in-out, color 0.8s ease-in-out;
         }
         input[type="text"]:focus {
-            background: rgba(255, 255, 255, 0.7);
+            background: var(--input-focus-bg);
         }
         input[type="text"]::placeholder {
             color: rgba(0, 0, 0, 0.5);
+        }
+        body.dark input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
         }
         button {
             padding: 10px 20px;
@@ -54,25 +95,27 @@
             font-weight: 500;
             border: none;
             border-radius: 12px;
-            background: rgba(0, 123, 255, 0.8);
+            background: var(--button-bg);
             color: white;
             cursor: pointer;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
+            transition: background 0.8s ease-in-out;
         }
         button:hover {
-            background: rgba(0, 123, 255, 1);
+            background: var(--button-hover-bg);
         }
         #imageDisplay {
             margin-top: 30px;
             padding: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
+            background: var(--container-bg);
+            backdrop-filter: blur(15px);
             border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px var(--shadow-color);
+            border: 1px solid var(--border-color);
             max-width: 850px;
             min-height: 50px;
             visibility: hidden;
+            transition: background 0.8s ease-in-out, box-shadow 0.8s ease-in-out, border-color 0.8s ease-in-out;
         }
         #imageDisplay.active {
             visibility: visible;
@@ -84,22 +127,38 @@
         footer {
             margin-top: 30px;
             font-size: 14px;
-            color: #666;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
             padding: 10px 20px;
+            background: var(--footer-bg);
+            backdrop-filter: blur(15px);
             border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 850px;
+            color: var(--footer-text);
+            transition: background 0.8s ease-in-out, color 0.8s ease-in-out;
         }
         footer a {
-            color: #007bff;
+            color: var(--link-color);
             text-decoration: none;
+            transition: color 0.8s ease-in-out;
         }
         footer a:hover {
             text-decoration: underline;
         }
+        #themeToggle {
+            cursor: pointer;
+            color: var(--toggle-color);
+            transition: color 0.8s ease-in-out;
+        }
+        #themeToggle:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
-<body>
+<body class="light">
     <h1>QuickDraw 字典</h1>
     <div class="input-container">
         <input type="text" id="keyword" placeholder="請輸入圖片關鍵字">
@@ -107,11 +166,7 @@
     </div>
     <div id="imageDisplay"></div>
     <footer>
-        此網站由 
-        <a href="https://youtube.com/@Titusz1118" target="_blank">@Titusz1118</a> 
-        和 
-        <a href="https://youtube.com/@bear-1128" target="_blank">@bear-1128</a> 
-        光榮製作
+        <span>此網站由 <a href="https://youtube.com/@Titusz1118">@Titusz1118</a> 和 <a href="https://youtube.com/@bear-1128">@bear-1128</a> 光榮製作 ｜ <span id="themeToggle">切換成深色模式</span></span>
     </footer>
 
     <script>
@@ -121,33 +176,67 @@
         let imageDict = {};
         let nameMapping = {};
 
-        async function loadNameMapping() {
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A1:D224?key=${apiKey}`;
+        async function setThemeBasedOnTime() {
             try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error("Sheets API 失敗: " + response.status);
+                const response = await fetch('https://ipapi.co/json/');
                 const data = await response.json();
-                const rows = data.values;
-                console.log("Sheets 數據:", rows); // 除錯：顯示載入嘅數據
-                rows.shift(); // 移除表頭
-                rows.forEach(row => {
-                    const [driveName, cnName, hkName, twName] = row;
-                    nameMapping[driveName] = driveName; // 香港用語
-                    if (cnName) nameMapping[cnName] = driveName; // 大陸用語
-                    if (hkName && hkName !== driveName) nameMapping[hkName] = driveName;
-                    if (twName) nameMapping[twName] = driveName; // 台灣用語
-                });
-                console.log("名稱映射:", nameMapping); // 除錯：顯示映射
+                const timezone = data.timezone || 'Asia/Hong_Kong';
+                const now = new Date().toLocaleString('en-US', { timeZone: timezone });
+                const localTime = new Date(now);
+                const hours = localTime.getHours();
+
+                const body = document.body;
+                const themeToggle = document.getElementById('themeToggle');
+                if (hours >= 8 && hours < 20) {
+                    body.classList.remove('dark');
+                    body.classList.add('light');
+                    themeToggle.textContent = '切換成深色模式';
+                } else {
+                    body.classList.remove('light');
+                    body.classList.add('dark');
+                    themeToggle.textContent = '切換成淺色模式';
+                }
             } catch (error) {
-                console.error("載入名稱映射失敗:", error);
+                const hours = new Date().getHours();
+                const body = document.body;
+                const themeToggle = document.getElementById('themeToggle');
+                if (hours >= 8 && hours < 20) {
+                    body.classList.add('light');
+                    themeToggle.textContent = '切換成深色模式';
+                } else {
+                    body.classList.add('dark');
+                    themeToggle.textContent = '切換成淺色模式';
+                }
             }
         }
 
-        function normalizeKeyword(input) {
-            const rawInput = input.trim();
-            const result = nameMapping[rawInput] || rawInput;
-            console.log(`輸入: ${rawInput}, 正規化結果: ${result}`); // 除錯
-            return result;
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            if (body.classList.contains('light')) {
+                body.classList.remove('light');
+                body.classList.add('dark');
+                themeToggle.textContent = '切換成淺色模式';
+            } else {
+                body.classList.remove('dark');
+                body.classList.add('light');
+                themeToggle.textContent = '切換成深色模式';
+            }
+        });
+
+        async function loadNameMapping() {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A1:D224?key=${apiKey}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            const rows = data.values;
+            rows.shift();
+            rows.forEach(row => {
+                const [driveName, cnName, hkName, twName] = row;
+                nameMapping[driveName] = driveName;
+                if (cnName) nameMapping[cnName] = driveName;
+                if (hkName && hkName !== driveName) nameMapping[hkName] = driveName;
+                if (twName) nameMapping[twName] = driveName;
+            });
         }
 
         async function loadImages() {
@@ -164,25 +253,24 @@
                 });
                 pageToken = data.nextPageToken || '';
             } while (pageToken);
-            console.log("圖片字典:", imageDict); // 除錯：顯示圖片字典
         }
 
         async function showImage() {
-            const keyword = document.getElementById("keyword").value;
-            const imageDisplay = document.getElementById("imageDisplay");
-            const normalizedKeyword = normalizeKeyword(keyword);
+            const keyword = document.getElementById("keyword").value.trim();
+            const normalizedKeyword = nameMapping[keyword] || keyword;
             const imageUrl = imageDict[normalizedKeyword];
+            const imageDisplay = document.getElementById("imageDisplay");
             if (imageUrl) {
                 imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${normalizedKeyword}" onerror="this.src='https://picsum.photos/300?text=載入失敗'">`;
                 imageDisplay.classList.add('active');
             } else {
                 imageDisplay.innerHTML = "搵唔到呢個關鍵字嘅圖片！";
                 imageDisplay.classList.add('active');
-                console.log(`無圖片 URL，關鍵字: ${normalizedKeyword}`); // 除錯
             }
         }
 
         window.onload = async () => {
+            await setThemeBasedOnTime();
             await loadNameMapping();
             await loadImages();
         };
