@@ -117,7 +117,7 @@
     <script>
         const apiKey = "AIzaSyAgMGtdMFlo6DF0Xm3IlgX5oDexneKhhwE";
         const folderId = "1jn2DTaUgnUsK6_Q8bBEQaLfSJRzzY_NH";
-        const sheetId = "1CGnFhxQYssC98gQpv8w-7iI17fVoik3tOpa3D77wGGY"; // 你嘅 Sheet ID
+        const sheetId = "1CGnFhxQYssC98gQpv8w-7iI17fVoik3tOpa3D77wGGY";
         let imageDict = {};
         let nameMapping = {};
 
@@ -125,17 +125,19 @@
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A1:D224?key=${apiKey}`;
             try {
                 const response = await fetch(url);
-                if (!response.ok) throw new Error("Sheets API 失敗");
+                if (!response.ok) throw new Error("Sheets API 失敗: " + response.status);
                 const data = await response.json();
                 const rows = data.values;
+                console.log("Sheets 數據:", rows); // 除錯：顯示載入嘅數據
                 rows.shift(); // 移除表頭
                 rows.forEach(row => {
                     const [driveName, cnName, hkName, twName] = row;
-                    nameMapping[driveName] = driveName; // 直接映射自己
-                    if (cnName) nameMapping[cnName] = driveName;
-                    if (hkName) nameMapping[hkName] = driveName;
-                    if (twName) nameMapping[twName] = driveName;
+                    nameMapping[driveName] = driveName; // 香港用語
+                    if (cnName) nameMapping[cnName] = driveName; // 大陸用語
+                    if (hkName && hkName !== driveName) nameMapping[hkName] = driveName;
+                    if (twName) nameMapping[twName] = driveName; // 台灣用語
                 });
+                console.log("名稱映射:", nameMapping); // 除錯：顯示映射
             } catch (error) {
                 console.error("載入名稱映射失敗:", error);
             }
@@ -143,7 +145,9 @@
 
         function normalizeKeyword(input) {
             const rawInput = input.trim();
-            return nameMapping[rawInput] || rawInput; // 直接用映射，無轉換回原始輸入
+            const result = nameMapping[rawInput] || rawInput;
+            console.log(`輸入: ${rawInput}, 正規化結果: ${result}`); // 除錯
+            return result;
         }
 
         async function loadImages() {
@@ -160,6 +164,7 @@
                 });
                 pageToken = data.nextPageToken || '';
             } while (pageToken);
+            console.log("圖片字典:", imageDict); // 除錯：顯示圖片字典
         }
 
         async function showImage() {
@@ -173,6 +178,7 @@
             } else {
                 imageDisplay.innerHTML = "搵唔到呢個關鍵字嘅圖片！";
                 imageDisplay.classList.add('active');
+                console.log(`無圖片 URL，關鍵字: ${normalizedKeyword}`); // 除錯
             }
         }
 
