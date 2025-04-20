@@ -156,15 +156,69 @@
         #themeToggle:hover {
             text-decoration: underline;
         }
+        #logoutButton, #upgradeButton {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            background: var(--button-bg);
+            color: white;
+            border: none;
+            display: none;
+        }
+        #adContainer {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 850px;
+            height: 100px;
+            background: #ddd;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #333;
+            border: 1px solid var(--border-color);
+        }
+        #adContainer.draw-plus {
+            display: none;
+        }
+        #membershipStatus {
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--text-color);
+        }
+        #g_id_onload {
+            margin-top: 10px;
+        }
     </style>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="light">
     <h1>QuickDraw 字典</h1>
+    <div id="g_id_onload"
+         data-client_id="917604778403-2nprv499d0t6cp8f78up9ne67g3sqlk2.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+         data-type="standard"
+         data-size="large"
+         data-theme="outline"
+         data-text="sign_in_with"
+         data-shape="rectangular"
+         data-logo_alignment="left">
+    </div>
+    <button id="logoutButton">登出</button>
+    <button id="upgradeButton">升級 Draw+</button>
+    <div id="membershipStatus"></div>
     <div class="input-container">
         <input type="text" id="keyword" placeholder="請輸入圖片關鍵字">
         <button onclick="showImage()">搵圖片</button>
     </div>
     <div id="imageDisplay"></div>
+    <div id="adContainer">廣告：升級 Draw+ 即享無廣告體驗！</div>
     <footer>
         <span>此網站由 <a href="https://youtube.com/@Titusz1118">@Titusz1118</a> 和 <a href="https://youtube.com/@bear-1128">@bear-1128</a> 光榮製作 ｜ <span id="themeToggle">切換成深色模式</span></span>
     </footer>
@@ -175,6 +229,57 @@
         const sheetId = "1CGnFhxQYssC98gQpv8w-7iI17fVoik3tOpa3D77wGGY";
         let imageDict = {};
         let nameMapping = {};
+
+        const logoutButton = document.getElementById('logoutButton');
+        const upgradeButton = document.getElementById('upgradeButton');
+        const membershipStatus = document.getElementById('membershipStatus');
+        const adContainer = document.getElementById('adContainer');
+
+        function handleCredentialResponse(response) {
+            const data = parseJwt(response.credential);
+            localStorage.setItem('userEmail', data.email);
+            checkLoginStatus();
+        }
+
+        function parseJwt(token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        function checkLoginStatus() {
+            const userEmail = localStorage.getItem('userEmail');
+            const isDrawPlus = localStorage.getItem('drawPlus') === 'true';
+            if (userEmail) {
+                document.querySelector('.g_id_signin').style.display = 'none';
+                logoutButton.style.display = 'inline-block';
+                upgradeButton.style.display = isDrawPlus ? 'none' : 'inline-block';
+                membershipStatus.textContent = isDrawPlus ? `歡迎，${userEmail}（Draw+ 會員）` : `歡迎，${userEmail}（免費版）`;
+                adContainer.classList.toggle('draw-plus', isDrawPlus);
+            } else {
+                document.querySelector('.g_id_signin').style.display = 'block';
+                logoutButton.style.display = 'none';
+                upgradeButton.style.display = 'none';
+                membershipStatus.textContent = '請用 Google 帳號登入';
+                adContainer.classList.remove('draw-plus');
+            }
+        }
+
+        logoutButton.addEventListener('click', () => {
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('drawPlus');
+            checkLoginStatus();
+        });
+
+        upgradeButton.addEventListener('click', () => {
+            if (confirm('確定升級 Draw+？（模擬訂閱，無廣告）')) {
+                localStorage.setItem('drawPlus', 'true');
+                checkLoginStatus();
+            }
+        });
 
         async function setThemeBasedOnTime() {
             try {
@@ -256,6 +361,10 @@
         }
 
         async function showImage() {
+            if (!localStorage.getItem('userEmail')) {
+                alert('請先用 Google 帳號登入！');
+                return;
+            }
             const keyword = document.getElementById("keyword").value.trim();
             const normalizedKeyword = nameMapping[keyword] || keyword;
             const imageUrl = imageDict[normalizedKeyword];
@@ -273,6 +382,7 @@
             await setThemeBasedOnTime();
             await loadNameMapping();
             await loadImages();
+            checkLoginStatus();
         };
     </script>
 </body>
