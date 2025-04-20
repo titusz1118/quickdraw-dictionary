@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>QuickDraw 字典</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
             --bg-start: #f0f2f5;
@@ -19,27 +20,10 @@
             --footer-bg: rgba(255, 255, 255, 0.1);
             --footer-text: #666;
             --link-color: #007bff;
-            --toggle-color: #007bff;
-        }
-        body.dark {
-            --bg-start: #1e1e1e;
-            --bg-end: #2d2d2d;
-            --text-color: #e0e0e0;
-            --container-bg: rgba(40, 40, 40, 0.2);
-            --input-bg: rgba(60, 60, 60, 0.5);
-            --input-focus-bg: rgba(80, 80, 80, 0.7);
-            --button-bg: rgba(80, 80, 80, 0.8);
-            --button-hover-bg: rgba(100, 100, 100, 1);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --shadow-color: rgba(0, 0, 0, 0.3);
-            --footer-bg: rgba(40, 40, 40, 0.1);
-            --footer-text: #aaa;
-            --link-color: #d0d0d0;
-            --toggle-color: #d0d0d0;
         }
         body {
             text-align: center;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', sans-serif !important;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -48,14 +32,16 @@
             margin: 0;
             padding: 20px;
             background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
-            transition: background 0.8s ease-in-out;
+        }
+        body * {
+            font-family: 'Inter', sans-serif !important;
         }
         h1 {
             font-weight: 500;
             margin-bottom: 20px;
             color: var(--text-color);
             text-shadow: 0 2px 4px var(--shadow-color);
-            transition: color 0.8s ease-in-out, text-shadow 0.8s ease-in-out;
+            animation: slideIn 0.5s ease-out;
         }
         .input-container {
             background: var(--container-bg);
@@ -66,7 +52,8 @@
             display: flex;
             gap: 10px;
             border: 1px solid var(--border-color);
-            transition: background 0.8s ease-in-out, box-shadow 0.8s ease-in-out, border-color 0.8s ease-in-out;
+            animation: slideIn 0.5s ease-out 0.2s;
+            animation-fill-mode: backwards;
         }
         input[type="text"] {
             padding: 10px 15px;
@@ -78,16 +65,14 @@
             width: 200px;
             background: var(--input-bg);
             color: var(--text-color);
-            transition: background 0.8s ease-in-out, color 0.8s ease-in-out;
+            transition: transform 0.3s ease, background 0.3s ease;
         }
         input[type="text"]:focus {
             background: var(--input-focus-bg);
+            transform: scale(1.05);
         }
         input[type="text"]::placeholder {
             color: rgba(0, 0, 0, 0.5);
-        }
-        body.dark input[type="text"]::placeholder {
-            color: rgba(255, 255, 255, 0.5);
         }
         button {
             padding: 10px 20px;
@@ -99,7 +84,11 @@
             color: white;
             cursor: pointer;
             backdrop-filter: blur(10px);
-            transition: background 0.8s ease-in-out;
+            transition: transform 0.2s ease, background 0.2s ease;
+            will-change: transform;
+        }
+        button:active {
+            transform: scale(0.95);
         }
         button:hover {
             background: var(--button-hover-bg);
@@ -114,16 +103,39 @@
             border: 1px solid var(--border-color);
             max-width: 850px;
             min-height: 50px;
+            width: 90vw;
             visibility: hidden;
-            transition: background 0.8s ease-in-out, box-shadow 0.8s ease-in-out, border-color 0.8s ease-in-out;
+            position: relative;
+            animation: slideIn 0.5s ease-out 0.4s;
+            animation-fill-mode: backwards;
         }
         #imageDisplay.active {
             visibility: visible;
         }
         #imageDisplay img {
             max-width: 800px;
+            width: 90vw;
             border-radius: 10px;
             margin: 10px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+            position: relative;
+            z-index: 1;
+        }
+        #watermark {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--text-color);
+            opacity: 0.7;
+            text-shadow: 0 2px 4px var(--shadow-color);
+            pointer-events: none;
+            z-index: 10;
+            animation: fadeIn 0.5s ease-out;
         }
         footer {
             margin-top: 30px;
@@ -139,26 +151,20 @@
             width: 100%;
             max-width: 850px;
             color: var(--footer-text);
-            transition: background 0.8s ease-in-out, color 0.8s ease-in-out;
+            animation: slideIn 0.5s ease-out 0.6s;
+            animation-fill-mode: backwards;
         }
         footer a {
             color: var(--link-color);
             text-decoration: none;
-            transition: color 0.8s ease-in-out;
         }
         footer a:hover {
             text-decoration: underline;
         }
-        #themeToggle {
-            cursor: pointer;
-            color: var(--toggle-color);
-            transition: color 0.8s ease-in-out;
-        }
-        #themeToggle:hover {
-            text-decoration: underline;
-        }
-        #logoutButton, #upgradePlusButton, #upgradeProButton {
-            margin-top: 10px;
+        #logoutButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
             padding: 10px 20px;
             font-size: 16px;
             border-radius: 12px;
@@ -167,39 +173,54 @@
             color: white;
             border: none;
             display: none;
+            transition: transform 0.2s ease;
+            animation: slideIn 0.5s ease-out 1s;
+            animation-fill-mode: backwards;
         }
-        #membershipStatus, #hdStatus, #searchStatus {
-            margin-top: 10px;
-            font-size: 14px;
-            color: var(--text-color);
+        #logoutButton:active {
+            transform: scale(0.95);
         }
         #g_id_onload {
-            margin-top: 10px;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            animation: slideIn 0.5s ease-out 1s;
+            animation-fill-mode: backwards;
         }
-        #themePicker {
-            margin-top: 10px;
-            display: none;
+        .g_id_signin {
+            position: absolute;
+            top: 20px;
+            right: 20px;
         }
-        #themePicker label {
-            color: var(--text-color);
-            margin-right: 10px;
+        .g_id_signin * {
+            font-family: 'Inter', sans-serif !important;
         }
-        #themePicker input[type="color"] {
-            border: none;
-            border-radius: 8px;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
     </style>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
-<body class="light">
+<body>
     <h1>QuickDraw 字典</h1>
     <div id="g_id_onload"
          data-client_id="917604778403-2nprv499d0t6cp8f78up9ne67g3sqlk2.apps.googleusercontent.com"
-         data-callback="handleCredentialResponse"
-         data-auto_prompt="false">
+         data-callback="handleGoogleCredentialResponse"
+         data-auto_prompt="true">
     </div>
     <div class="g_id_signin"
          data-type="standard"
@@ -210,23 +231,15 @@
          data-logo_alignment="left">
     </div>
     <button id="logoutButton">登出</button>
-    <button id="upgradePlusButton">升級 Draw+（HK$10）</button>
-    <button id="upgradeProButton">升級 Draw Pro（HK$20）</button>
-    <div id="membershipStatus"></div>
-    <div id="hdStatus"></div>
-    <div id="searchStatus"></div>
-    <div id="themePicker">
-        <label>自訂主題：</label>
-        <input type="color" id="bgColorPicker" title="背景顏色">
-        <input type="color" id="buttonColorPicker" title="按鈕顏色">
-    </div>
     <div class="input-container">
-        <input type="text" id="keyword" placeholder="輸入關鍵字（Draw+ 可多關鍵字）">
+        <input type="text" id="keyword" placeholder="輸入關鍵字">
         <button onclick="showImage()">搵圖片</button>
     </div>
-    <div id="imageDisplay"></div>
+    <div id="imageDisplay">
+        <div id="watermark">請登入以解鎖更高清圖片</div>
+    </div>
     <footer>
-        <span>此網站由 <a href="https://youtube.com/@Titusz1118">@Titusz1118</a> 和 <a href="https://youtube.com/@bear-1128">@bear-1128</a> 光榮製作 ｜ <span id="themeToggle">切換成深色模式</span></span>
+        <span>此網站由 <a href="https://youtube.com/@Titusz1118">@Titusz1118</a> 和 <a href="https://youtube.com/@bear-1128">@bear-1128</a> 光榮製作</span>
     </footer>
 
     <script>
@@ -235,37 +248,18 @@
         const sheetId = "1CGnFhxQYssC98gQpv8w-7iI17fVoik3tOpa3D77wGGY";
         let imageDict = {};
         let nameMapping = {};
+        let isLoggedIn = false;
 
         const logoutButton = document.getElementById('logoutButton');
-        const upgradePlusButton = document.getElementById('upgradePlusButton');
-        const upgradeProButton = document.getElementById('upgradeProButton');
-        const membershipStatus = document.getElementById('membershipStatus');
-        const hdStatus = document.getElementById('hdStatus');
-        const searchStatus = document.getElementById('searchStatus');
-        const themePicker = document.getElementById('themePicker');
-        const bgColorPicker = document.getElementById('bgColorPicker');
-        const buttonColorPicker = document.getElementById('buttonColorPicker');
+        const watermark = document.getElementById('watermark');
+        const imageDisplay = document.getElementById('imageDisplay');
 
-        // Initialize Service Worker for offline mode
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').catch(err => console.error('Service Worker error:', err));
-        }
-
-        // Initialize IndexedDB for offline storage
-        let db;
-        const dbRequest = indexedDB.open('QuickDrawDB', 1);
-        dbRequest.onupgradeneeded = event => {
-            db = event.target.result;
-            db.createObjectStore('images', { keyPath: 'keyword' });
-        };
-        dbRequest.onsuccess = event => {
-            db = event.target.result;
-        };
-
-        function handleCredentialResponse(response) {
+        function handleGoogleCredentialResponse(response) {
             const data = parseJwt(response.credential);
             localStorage.setItem('userEmail', data.email);
-            checkLoginStatus();
+            isLoggedIn = true;
+            updateLoginStatus();
+            loadImages(); // Reload images with sz=s2000
         }
 
         function parseJwt(token) {
@@ -277,133 +271,26 @@
             return JSON.parse(jsonPayload);
         }
 
-        async function checkLoginStatus() {
+        function updateLoginStatus(hasImages = false) {
             const userEmail = localStorage.getItem('userEmail');
-            const isDrawPlus = localStorage.getItem('drawPlus') === 'true';
-            const isDrawPro = localStorage.getItem('drawPro') === 'true';
             if (userEmail) {
                 document.querySelector('.g_id_signin').style.display = 'none';
                 logoutButton.style.display = 'inline-block';
-                upgradePlusButton.style.display = isDrawPlus || isDrawPro ? 'none' : 'inline-block';
-                upgradeProButton.style.display = isDrawPro ? 'none' : 'inline-block';
-                membershipStatus.textContent = isDrawPro ? `歡迎，${userEmail}（Draw Pro）` : isDrawPlus ? `歡迎，${userEmail}（Draw+）` : `歡迎，${userEmail}（免費版）`;
-                hdStatus.textContent = isDrawPlus || isDrawPro ? '高清圖片：已解鎖' : '高清圖片：升級 Draw+ 或 Draw Pro 解鎖';
-                themePicker.style.display = isDrawPlus || isDrawPro ? 'block' : 'none';
-                updateSearchStatus();
+                watermark.style.display = 'none';
+                isLoggedIn = true;
             } else {
                 document.querySelector('.g_id_signin').style.display = 'block';
                 logoutButton.style.display = 'none';
-                upgradePlusButton.style.display = 'none';
-                upgradeProButton.style.display = 'none';
-                membershipStatus.textContent = '請用 Google 帳號登入';
-                hdStatus.textContent = '高清圖片：請登入並升級';
-                themePicker.style.display = 'none';
-                searchStatus.textContent = '搵圖次數：請登入';
+                watermark.style.display = hasImages ? 'block' : 'none';
+                isLoggedIn = false;
             }
-        }
-
-        function updateSearchStatus() {
-            const isDrawPlus = localStorage.getItem('drawPlus') === 'true';
-            const isDrawPro = localStorage.getItem('drawPro') === 'true';
-            if (isDrawPlus || isDrawPro) {
-                searchStatus.textContent = '搵圖次數：無限（Draw+ 或 Draw Pro）';
-                return;
-            }
-            const today = new Date().toISOString().split('T')[0];
-            const lastSearchDate = localStorage.getItem('lastSearchDate');
-            let searchCount = parseInt(localStorage.getItem('searchCount') || '0');
-            if (lastSearchDate !== today) {
-                searchCount = 0;
-                localStorage.setItem('lastSearchDate', today);
-                localStorage.setItem('searchCount', '0');
-            }
-            searchStatus.textContent = `搵圖次數：${5 - searchCount}/5（升級 Draw+ 或 Draw Pro 享無限）`;
         }
 
         logoutButton.addEventListener('click', () => {
             localStorage.removeItem('userEmail');
-            localStorage.removeItem('drawPlus');
-            localStorage.removeItem('drawPro');
-            localStorage.removeItem('searchCount');
-            localStorage.removeItem('lastSearchDate');
-            checkLoginStatus();
-        });
-
-        upgradePlusButton.addEventListener('click', () => {
-            window.location.href = 'https://streamlabs.com/titusz1118/';
-        });
-
-        upgradeProButton.addEventListener('click', () => {
-            window.location.href = 'https://streamlabs.com/titusz1118/';
-        });
-
-        // Custom Theme
-        function applyCustomTheme() {
-            const bgColor = localStorage.getItem('bgColor') || '#f0f2f5';
-            const buttonColor = localStorage.getItem('buttonColor') || 'rgba(0, 123, 255, 0.8)';
-            document.documentElement.style.setProperty('--bg-start', bgColor);
-            document.documentElement.style.setProperty('--button-bg', buttonColor);
-        }
-
-        bgColorPicker.addEventListener('input', () => {
-            const color = bgColorPicker.value;
-            localStorage.setItem('bgColor', color);
-            applyCustomTheme();
-        });
-
-        buttonColorPicker.addEventListener('input', () => {
-            const color = buttonColorPicker.value;
-            localStorage.setItem('buttonColor', color);
-            applyCustomTheme();
-        });
-
-        async function setThemeBasedOnTime() {
-            try {
-                const response = await fetch('https://ipapi.co/json/');
-                const data = await response.json();
-                const timezone = data.timezone || 'Asia/Hong_Kong';
-                const now = new Date().toLocaleString('en-US', { timeZone: timezone });
-                const localTime = new Date(now);
-                const hours = localTime.getHours();
-
-                const body = document.body;
-                const themeToggle = document.getElementById('themeToggle');
-                if (hours >= 8 && hours < 20) {
-                    body.classList.remove('dark');
-                    body.classList.add('light');
-                    themeToggle.textContent = '切換成深色模式';
-                } else {
-                    body.classList.remove('light');
-                    body.classList.add('dark');
-                    themeToggle.textContent = '切換成淺色模式';
-                }
-            } catch (error) {
-                const hours = new Date().getHours();
-                const body = document.body;
-                const themeToggle = document.getElementById('themeToggle');
-                if (hours >= 8 && hours < 20) {
-                    body.classList.add('light');
-                    themeToggle.textContent = '切換成深色模式';
-                } else {
-                    body.classList.add('dark');
-                    themeToggle.textContent = '切換成淺色模式';
-                }
-            }
-            applyCustomTheme();
-        }
-
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            const body = document.body;
-            const themeToggle = document.getElementById('themeToggle');
-            if (body.classList.contains('light')) {
-                body.classList.remove('light');
-                body.classList.add('dark');
-                themeToggle.textContent = '切換成淺色模式';
-            } else {
-                body.classList.remove('dark');
-                body.classList.add('light');
-                themeToggle.textContent = '切換成深色模式';
-            }
+            isLoggedIn = false;
+            updateLoginStatus();
+            loadImages(); // Reload images with sz=s100
         });
 
         async function loadNameMapping() {
@@ -420,17 +307,15 @@
                     if (hkName && hkName !== driveName) nameMapping[hkName] = driveName;
                     if (twName) nameMapping[twName] = driveName;
                 });
-                // Cache nameMapping for offline use
-                const transaction = db.transaction(['images'], 'readwrite');
-                const store = transaction.objectStore('images');
-                store.put({ keyword: '_nameMapping', data: nameMapping });
             } catch (err) {
                 console.error('Failed to load name mapping:', err);
             }
         }
 
         async function loadImages() {
+            imageDict = {};
             let pageToken = '';
+            const size = isLoggedIn ? 's2000' : 's100';
             do {
                 const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${apiKey}&pageToken=${pageToken}&fields=nextPageToken,files(id,name,mimeType)`;
                 try {
@@ -440,13 +325,8 @@
                         if (file.mimeType.startsWith('image/')) {
                             const fileName = file.name.replace('.png', '').trim();
                             imageDict[fileName] = {
-                                standard: `https://drive.google.com/thumbnail?id=${file.id}&sz=s1000`,
-                                hd: `https://drive.google.com/thumbnail?id=${file.id}&sz=s4000`
+                                standard: `https://drive.google.com/thumbnail?id=${file.id}&sz=${size}`
                             };
-                            // Cache images for offline use
-                            const transaction = db.transaction(['images'], 'readwrite');
-                            const store = transaction.objectStore('images');
-                            store.put({ keyword: fileName, data: imageDict[fileName] });
                         }
                     });
                     pageToken = data.nextPageToken || '';
@@ -458,87 +338,42 @@
         }
 
         async function showImage() {
-            if (!localStorage.getItem('userEmail')) {
-                alert('請先用 Google 帳號登入！');
-                return;
-            }
-
-            const isDrawPlus = localStorage.getItem('drawPlus') === 'true';
-            const isDrawPro = localStorage.getItem('drawPro') === 'true';
-            if (!isDrawPlus && !isDrawPro) {
-                const today = new Date().toISOString().split('T')[0];
-                const lastSearchDate = localStorage.getItem('lastSearchDate');
-                let searchCount = parseInt(localStorage.getItem('searchCount') || '0');
-                if (lastSearchDate !== today) {
-                    searchCount = 0;
-                    localStorage.setItem('lastSearchDate', today);
-                    localStorage.setItem('searchCount', '0');
-                }
-                if (searchCount >= 5) {
-                    alert('每日搵圖次數已達 5 次，升級 Draw+ 或 Draw Pro 享無限搵圖！');
-                    return;
-                }
-                searchCount++;
-                localStorage.setItem('searchCount', searchCount);
-                updateSearchStatus();
-            }
-
             const keywordInput = document.getElementById("keyword").value.trim();
-            const imageDisplay = document.getElementById("imageDisplay");
-            imageDisplay.innerHTML = '';
             imageDisplay.classList.add('active');
 
-            const isOnline = navigator.onLine;
-            if (!isOnline && !isDrawPro) {
-                imageDisplay.innerHTML = '離線模式僅限 Draw Pro 會員！請連線網絡或升級！';
-                return;
+            // Clear images but keep watermark
+            while (imageDisplay.children.length > 1) {
+                imageDisplay.removeChild(imageDisplay.lastChild);
             }
 
-            let keywords = [keywordInput];
-            if ((isDrawPlus || isDrawPro) && keywordInput.includes(' ')) {
-                keywords = keywordInput.split(' ').filter(k => k.trim());
-            }
+            const keywords = keywordInput.includes(' ') ? keywordInput.split(' ').filter(k => k.trim()) : [keywordInput];
 
             let foundImages = false;
             for (const keyword of keywords) {
-                let normalizedKeyword = keyword;
-                let imageData;
-
-                if (isOnline) {
-                    normalizedKeyword = nameMapping[keyword] || keyword;
-                    imageData = imageDict[normalizedKeyword];
-                } else {
-                    // Offline mode: Check IndexedDB
-                    const transaction = db.transaction(['images'], 'readonly');
-                    const store = transaction.objectStore('images');
-                    const request = store.get(keyword);
-                    await new Promise(resolve => {
-                        request.onsuccess = () => {
-                            imageData = request.result?.data;
-                            normalizedKeyword = request.result?.keyword || keyword;
-                            resolve();
-                        };
-                        request.onerror = () => resolve();
-                    });
-                }
+                const normalizedKeyword = nameMapping[keyword] || keyword;
+                const imageData = imageDict[normalizedKeyword];
 
                 if (imageData) {
-                    const imageUrl = (isDrawPlus || isDrawPro) ? imageData.hd : imageData.standard;
-                    imageDisplay.innerHTML += `<img src="${imageUrl}" alt="${normalizedKeyword}" onerror="this.src='https://picsum.photos/300?text=載入失敗'">`;
+                    const imageUrl = imageData.standard;
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.alt = normalizedKeyword;
+                    img.onerror = () => { img.src = 'https://picsum.photos/300?text=載入失敗'; };
+                    imageDisplay.appendChild(img);
                     foundImages = true;
                 }
             }
 
             if (!foundImages) {
-                imageDisplay.innerHTML = '搵唔到呢啲關鍵字嘅圖片！';
+                imageDisplay.innerHTML = '<div id="watermark">請登入以解鎖更高清圖片</div><div>搵唔到呢啲關鍵字嘅圖片！</div>';
             }
+            updateLoginStatus(foundImages);
         }
 
         window.onload = async () => {
-            await setThemeBasedOnTime();
             await loadNameMapping();
             await loadImages();
-            checkLoginStatus();
+            updateLoginStatus();
         };
     </script>
 </body>
