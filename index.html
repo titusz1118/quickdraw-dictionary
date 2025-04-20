@@ -123,6 +123,7 @@
         #imageDisplay img {
             max-width: 800px;
             border-radius: 10px;
+            margin: 10px;
         }
         footer {
             margin-top: 30px;
@@ -156,7 +157,7 @@
         #themeToggle:hover {
             text-decoration: underline;
         }
-        #logoutButton, #upgradeButton {
+        #logoutButton, #upgradePlusButton, #upgradeProButton {
             margin-top: 10px;
             padding: 10px 20px;
             font-size: 16px;
@@ -167,30 +168,28 @@
             border: none;
             display: none;
         }
-        #adContainer {
-            margin-top: 20px;
-            width: 100%;
-            max-width: 850px;
-            height: 100px;
-            background: #ddd;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            color: #333;
-            border: 1px solid var(--border-color);
-        }
-        #adContainer.draw-plus {
-            display: none;
-        }
-        #membershipStatus {
+        #membershipStatus, #hdStatus, #searchStatus {
             margin-top: 10px;
             font-size: 14px;
             color: var(--text-color);
         }
         #g_id_onload {
             margin-top: 10px;
+        }
+        #themePicker {
+            margin-top: 10px;
+            display: none;
+        }
+        #themePicker label {
+            color: var(--text-color);
+            margin-right: 10px;
+        }
+        #themePicker input[type="color"] {
+            border: none;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
         }
     </style>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -211,14 +210,21 @@
          data-logo_alignment="left">
     </div>
     <button id="logoutButton">登出</button>
-    <button id="upgradeButton">升級 Draw+</button>
+    <button id="upgradePlusButton">升級 Draw+（HK$10）</button>
+    <button id="upgradeProButton">升級 Draw Pro（HK$20）</button>
     <div id="membershipStatus"></div>
+    <div id="hdStatus"></div>
+    <div id="searchStatus"></div>
+    <div id="themePicker">
+        <label>自訂主題：</label>
+        <input type="color" id="bgColorPicker" title="背景顏色">
+        <input type="color" id="buttonColorPicker" title="按鈕顏色">
+    </div>
     <div class="input-container">
-        <input type="text" id="keyword" placeholder="請輸入圖片關鍵字">
+        <input type="text" id="keyword" placeholder="輸入關鍵字（Draw+ 可多關鍵字）">
         <button onclick="showImage()">搵圖片</button>
     </div>
     <div id="imageDisplay"></div>
-    <div id="adContainer">廣告：升級 Draw+ 即享無廣告體驗！</div>
     <footer>
         <span>此網站由 <a href="https://youtube.com/@Titusz1118">@Titusz1118</a> 和 <a href="https://youtube.com/@bear-1128">@bear-1128</a> 光榮製作 ｜ <span id="themeToggle">切換成深色模式</span></span>
     </footer>
@@ -231,9 +237,30 @@
         let nameMapping = {};
 
         const logoutButton = document.getElementById('logoutButton');
-        const upgradeButton = document.getElementById('upgradeButton');
+        const upgradePlusButton = document.getElementById('upgradePlusButton');
+        const upgradeProButton = document.getElementById('upgradeProButton');
         const membershipStatus = document.getElementById('membershipStatus');
-        const adContainer = document.getElementById('adContainer');
+        const hdStatus = document.getElementById('hdStatus');
+        const searchStatus = document.getElementById('searchStatus');
+        const themePicker = document.getElementById('themePicker');
+        const bgColorPicker = document.getElementById('bgColorPicker');
+        const buttonColorPicker = document.getElementById('buttonColorPicker');
+
+        // Initialize Service Worker for offline mode
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(err => console.error('Service Worker error:', err));
+        }
+
+        // Initialize IndexedDB for offline storage
+        let db;
+        const dbRequest = indexedDB.open('QuickDrawDB', 1);
+        dbRequest.onupgradeneeded = event => {
+            db = event.target.result;
+            db.createObjectStore('images', { keyPath: 'keyword' });
+        };
+        dbRequest.onsuccess = event => {
+            db = event.target.result;
+        };
 
         function handleCredentialResponse(response) {
             const data = parseJwt(response.credential);
@@ -250,35 +277,84 @@
             return JSON.parse(jsonPayload);
         }
 
-        function checkLoginStatus() {
+        async function checkLoginStatus() {
             const userEmail = localStorage.getItem('userEmail');
             const isDrawPlus = localStorage.getItem('drawPlus') === 'true';
+            const isDrawPro = localStorage.getItem('drawPro') === 'true';
             if (userEmail) {
                 document.querySelector('.g_id_signin').style.display = 'none';
                 logoutButton.style.display = 'inline-block';
-                upgradeButton.style.display = isDrawPlus ? 'none' : 'inline-block';
-                membershipStatus.textContent = isDrawPlus ? `歡迎，${userEmail}（Draw+ 會員）` : `歡迎，${userEmail}（免費版）`;
-                adContainer.classList.toggle('draw-plus', isDrawPlus);
+                upgradePlusButton.style.display = isDrawPlus || isDrawPro ? 'none' : 'inline-block';
+                upgradeProButton.style.display = isDrawPro ? 'none' : 'inline-block';
+                membershipStatus.textContent = isDrawPro ? `歡迎，${userEmail}（Draw Pro）` : isDrawPlus ? `歡迎，${userEmail}（Draw+）` : `歡迎，${userEmail}（免費版）`;
+                hdStatus.textContent = isDrawPlus || isDrawPro ? '高清圖片：已解鎖' : '高清圖片：升級 Draw+ 或 Draw Pro 解鎖';
+                themePicker.style.display = isDrawPlus || isDrawPro ? 'block' : 'none';
+                updateSearchStatus();
             } else {
                 document.querySelector('.g_id_signin').style.display = 'block';
                 logoutButton.style.display = 'none';
-                upgradeButton.style.display = 'none';
+                upgradePlusButton.style.display = 'none';
+                upgradeProButton.style.display = 'none';
                 membershipStatus.textContent = '請用 Google 帳號登入';
-                adContainer.classList.remove('draw-plus');
+                hdStatus.textContent = '高清圖片：請登入並升級';
+                themePicker.style.display = 'none';
+                searchStatus.textContent = '搵圖次數：請登入';
             }
+        }
+
+        function updateSearchStatus() {
+            const isDrawPlus = localStorage.getItem('drawPlus') === 'true';
+            const isDrawPro = localStorage.getItem('drawPro') === 'true';
+            if (isDrawPlus || isDrawPro) {
+                searchStatus.textContent = '搵圖次數：無限（Draw+ 或 Draw Pro）';
+                return;
+            }
+            const today = new Date().toISOString().split('T')[0];
+            const lastSearchDate = localStorage.getItem('lastSearchDate');
+            let searchCount = parseInt(localStorage.getItem('searchCount') || '0');
+            if (lastSearchDate !== today) {
+                searchCount = 0;
+                localStorage.setItem('lastSearchDate', today);
+                localStorage.setItem('searchCount', '0');
+            }
+            searchStatus.textContent = `搵圖次數：${5 - searchCount}/5（升級 Draw+ 或 Draw Pro 享無限）`;
         }
 
         logoutButton.addEventListener('click', () => {
             localStorage.removeItem('userEmail');
             localStorage.removeItem('drawPlus');
+            localStorage.removeItem('drawPro');
+            localStorage.removeItem('searchCount');
+            localStorage.removeItem('lastSearchDate');
             checkLoginStatus();
         });
 
-        upgradeButton.addEventListener('click', () => {
-            if (confirm('確定升級 Draw+？（模擬訂閱，無廣告）')) {
-                localStorage.setItem('drawPlus', 'true');
-                checkLoginStatus();
-            }
+        upgradePlusButton.addEventListener('click', () => {
+            window.location.href = 'https://streamlabs.com/titusz1118/';
+        });
+
+        upgradeProButton.addEventListener('click', () => {
+            window.location.href = 'https://streamlabs.com/titusz1118/';
+        });
+
+        // Custom Theme
+        function applyCustomTheme() {
+            const bgColor = localStorage.getItem('bgColor') || '#f0f2f5';
+            const buttonColor = localStorage.getItem('buttonColor') || 'rgba(0, 123, 255, 0.8)';
+            document.documentElement.style.setProperty('--bg-start', bgColor);
+            document.documentElement.style.setProperty('--button-bg', buttonColor);
+        }
+
+        bgColorPicker.addEventListener('input', () => {
+            const color = bgColorPicker.value;
+            localStorage.setItem('bgColor', color);
+            applyCustomTheme();
+        });
+
+        buttonColorPicker.addEventListener('input', () => {
+            const color = buttonColorPicker.value;
+            localStorage.setItem('buttonColor', color);
+            applyCustomTheme();
         });
 
         async function setThemeBasedOnTime() {
@@ -313,6 +389,7 @@
                     themeToggle.textContent = '切換成淺色模式';
                 }
             }
+            applyCustomTheme();
         }
 
         document.getElementById('themeToggle').addEventListener('click', () => {
@@ -331,32 +408,52 @@
 
         async function loadNameMapping() {
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A1:D224?key=${apiKey}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            const rows = data.values;
-            rows.shift();
-            rows.forEach(row => {
-                const [driveName, cnName, hkName, twName] = row;
-                nameMapping[driveName] = driveName;
-                if (cnName) nameMapping[cnName] = driveName;
-                if (hkName && hkName !== driveName) nameMapping[hkName] = driveName;
-                if (twName) nameMapping[twName] = driveName;
-            });
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const rows = data.values;
+                rows.shift();
+                rows.forEach(row => {
+                    const [driveName, cnName, hkName, twName] = row;
+                    nameMapping[driveName] = driveName;
+                    if (cnName) nameMapping[cnName] = driveName;
+                    if (hkName && hkName !== driveName) nameMapping[hkName] = driveName;
+                    if (twName) nameMapping[twName] = driveName;
+                });
+                // Cache nameMapping for offline use
+                const transaction = db.transaction(['images'], 'readwrite');
+                const store = transaction.objectStore('images');
+                store.put({ keyword: '_nameMapping', data: nameMapping });
+            } catch (err) {
+                console.error('Failed to load name mapping:', err);
+            }
         }
 
         async function loadImages() {
             let pageToken = '';
             do {
                 const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${apiKey}&pageToken=${pageToken}&fields=nextPageToken,files(id,name,mimeType)`;
-                const response = await fetch(url);
-                const data = await response.json();
-                data.files.forEach(file => {
-                    if (file.mimeType.startsWith('image/')) {
-                        const fileName = file.name.replace('.png', '').trim();
-                        imageDict[fileName] = `https://drive.google.com/thumbnail?id=${file.id}&sz=s1000`;
-                    }
-                });
-                pageToken = data.nextPageToken || '';
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    data.files.forEach(file => {
+                        if (file.mimeType.startsWith('image/')) {
+                            const fileName = file.name.replace('.png', '').trim();
+                            imageDict[fileName] = {
+                                standard: `https://drive.google.com/thumbnail?id=${file.id}&sz=s1000`,
+                                hd: `https://drive.google.com/thumbnail?id=${file.id}&sz=s4000`
+                            };
+                            // Cache images for offline use
+                            const transaction = db.transaction(['images'], 'readwrite');
+                            const store = transaction.objectStore('images');
+                            store.put({ keyword: fileName, data: imageDict[fileName] });
+                        }
+                    });
+                    pageToken = data.nextPageToken || '';
+                } catch (err) {
+                    console.error('Failed to load images:', err);
+                    break;
+                }
             } while (pageToken);
         }
 
@@ -365,16 +462,75 @@
                 alert('請先用 Google 帳號登入！');
                 return;
             }
-            const keyword = document.getElementById("keyword").value.trim();
-            const normalizedKeyword = nameMapping[keyword] || keyword;
-            const imageUrl = imageDict[normalizedKeyword];
+
+            const isDrawPlus = localStorage.getItem('drawPlus') === 'true';
+            const isDrawPro = localStorage.getItem('drawPro') === 'true';
+            if (!isDrawPlus && !isDrawPro) {
+                const today = new Date().toISOString().split('T')[0];
+                const lastSearchDate = localStorage.getItem('lastSearchDate');
+                let searchCount = parseInt(localStorage.getItem('searchCount') || '0');
+                if (lastSearchDate !== today) {
+                    searchCount = 0;
+                    localStorage.setItem('lastSearchDate', today);
+                    localStorage.setItem('searchCount', '0');
+                }
+                if (searchCount >= 5) {
+                    alert('每日搵圖次數已達 5 次，升級 Draw+ 或 Draw Pro 享無限搵圖！');
+                    return;
+                }
+                searchCount++;
+                localStorage.setItem('searchCount', searchCount);
+                updateSearchStatus();
+            }
+
+            const keywordInput = document.getElementById("keyword").value.trim();
             const imageDisplay = document.getElementById("imageDisplay");
-            if (imageUrl) {
-                imageDisplay.innerHTML = `<img src="${imageUrl}" alt="${normalizedKeyword}" onerror="this.src='https://picsum.photos/300?text=載入失敗'">`;
-                imageDisplay.classList.add('active');
-            } else {
-                imageDisplay.innerHTML = "搵唔到呢個關鍵字嘅圖片！";
-                imageDisplay.classList.add('active');
+            imageDisplay.innerHTML = '';
+            imageDisplay.classList.add('active');
+
+            const isOnline = navigator.onLine;
+            if (!isOnline && !isDrawPro) {
+                imageDisplay.innerHTML = '離線模式僅限 Draw Pro 會員！請連線網絡或升級！';
+                return;
+            }
+
+            let keywords = [keywordInput];
+            if ((isDrawPlus || isDrawPro) && keywordInput.includes(' ')) {
+                keywords = keywordInput.split(' ').filter(k => k.trim());
+            }
+
+            let foundImages = false;
+            for (const keyword of keywords) {
+                let normalizedKeyword = keyword;
+                let imageData;
+
+                if (isOnline) {
+                    normalizedKeyword = nameMapping[keyword] || keyword;
+                    imageData = imageDict[normalizedKeyword];
+                } else {
+                    // Offline mode: Check IndexedDB
+                    const transaction = db.transaction(['images'], 'readonly');
+                    const store = transaction.objectStore('images');
+                    const request = store.get(keyword);
+                    await new Promise(resolve => {
+                        request.onsuccess = () => {
+                            imageData = request.result?.data;
+                            normalizedKeyword = request.result?.keyword || keyword;
+                            resolve();
+                        };
+                        request.onerror = () => resolve();
+                    });
+                }
+
+                if (imageData) {
+                    const imageUrl = (isDrawPlus || isDrawPro) ? imageData.hd : imageData.standard;
+                    imageDisplay.innerHTML += `<img src="${imageUrl}" alt="${normalizedKeyword}" onerror="this.src='https://picsum.photos/300?text=載入失敗'">`;
+                    foundImages = true;
+                }
+            }
+
+            if (!foundImages) {
+                imageDisplay.innerHTML = '搵唔到呢啲關鍵字嘅圖片！';
             }
         }
 
