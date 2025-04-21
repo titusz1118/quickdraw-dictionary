@@ -74,18 +74,6 @@
         input[type="text"]::placeholder {
             color: rgba(0, 0, 0, 0.5);
         }
-        input.speech-active {
-            background: transparent;
-            color: transparent;
-            background-image: linear-gradient(90deg, #BC82F3, #F5B9EA, #8D9FFF, #FF6778, #FFBA71, #C686FF, #BC82F3);
-            background-size: 200%;
-            background-clip: text;
-            -webkit-background-clip: text;
-            text-shadow: 0 0 10px rgba(188, 130, 243, 0.8),
-                         0 0 20px rgba(245, 185, 234, 0.6),
-                         0 0 30px rgba(141, 159, 255, 0.4);
-            animation: gradientShift 3s linear infinite, glowPulse 1.5s ease-in-out infinite;
-        }
         button {
             padding: 10px 20px;
             font-size: 16px;
@@ -139,6 +127,8 @@
             font-weight: 500;
             color: var(--text-color);
             margin: 10px 0;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
         }
         #watermark {
             display: none;
@@ -198,17 +188,6 @@
         #logoutButton:active {
             transform: scale(0.95);
         }
-        #userAvatar {
-            position: absolute;
-            top: 20px;
-            right: 80px;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: none;
-            animation: slideIn 0.5s ease-out 1s;
-            animation-fill-mode: backwards;
-        }
         #g_id_onload {
             position: absolute;
             top: 20px;
@@ -242,14 +221,6 @@
                 opacity: 1;
             }
         }
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 200% 50%; }
-        }
-        @keyframes glowPulse {
-            0%, 100% { text-shadow: 0 0 10px rgba(188, 130, 243, 0.8), 0 0 20px rgba(245, 185, 234, 0.6), 0 0 30px rgba(141, 159, 255, 0.4); }
-            50% { text-shadow: 0 0 15px rgba(188, 130, 243, 1), 0 0 25px rgba(245, 185, 234, 0.8), 0 0 35px rgba(141, 159, 255, 0.6); }
-        }
     </style>
 </head>
 <body>
@@ -267,11 +238,10 @@
          data-shape="rectangular"
          data-logo_alignment="left">
     </div>
-    <img id="userAvatar" src="" alt="User Avatar">
     <button id="logoutButton">登出</button>
     <div class="input-container">
         <input type="text" id="keyword" placeholder="輸入關鍵字">
-        <button id="searchButton" onclick="showImage()" ondblclick="startSpeechRecognition()">搵圖片</button>
+        <button onclick="showImage()">搵圖片</button>
     </div>
     <div id="imageDisplay">
         <div id="watermark">請登入以解鎖更高清圖片</div>
@@ -289,16 +259,13 @@
         let isLoggedIn = false;
 
         const logoutButton = document.getElementById('logoutButton');
-        const userAvatar = document.getElementById('userAvatar');
         const watermark = document.getElementById('watermark');
         const imageDisplay = document.getElementById('imageDisplay');
         const keywordInput = document.getElementById('keyword');
-        const searchButton = document.getElementById('searchButton');
 
         function handleGoogleCredentialResponse(response) {
             const data = parseJwt(response.credential);
             localStorage.setItem('userEmail', data.email);
-            localStorage.setItem('userAvatar', data.picture);
             isLoggedIn = true;
             updateLoginStatus();
             loadImages();
@@ -315,18 +282,14 @@
 
         function updateLoginStatus(hasImages = false) {
             const userEmail = localStorage.getItem('userEmail');
-            const userAvatarUrl = localStorage.getItem('userAvatar');
             if (userEmail) {
                 document.querySelector('.g_id_signin').style.display = 'none';
                 logoutButton.style.display = 'inline-block';
-                userAvatar.src = userAvatarUrl || 'https://via.placeholder.com/32';
-                userAvatar.style.display = 'inline-block';
                 watermark.style.display = 'none';
                 isLoggedIn = true;
             } else {
                 document.querySelector('.g_id_signin').style.display = 'block';
                 logoutButton.style.display = 'none';
-                userAvatar.style.display = 'none';
                 watermark.style.display = hasImages ? 'block' : 'none';
                 isLoggedIn = false;
             }
@@ -334,7 +297,6 @@
 
         logoutButton.addEventListener('click', () => {
             localStorage.removeItem('userEmail');
-            localStorage.removeItem('userAvatar');
             isLoggedIn = false;
             updateLoginStatus();
             loadImages();
@@ -421,67 +383,6 @@
                 imageDisplay.innerHTML = '<div id="watermark">請登入以解鎖更高清圖片</div><div>搵唔到呢個關鍵字嘅圖片！</div>';
             }
             updateLoginStatus(foundImages);
-        }
-
-        // Speech Recognition
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition = null;
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-
-            function startSpeechRecognition() {
-                recognition.lang = 'yue-HK'; // Start with Cantonese
-                keywordInput.classList.add('speech-active');
-                searchButton.style.background = 'rgba(255, 0, 0, 0.8)'; // Indicate recording
-                recognition.start();
-            }
-
-            recognition.onresult = (event) => {
-                let transcript = event.results[0][0].transcript;
-                // Add spaces between Chinese keywords
-                transcript = transcript.replace(/(\p{Script=Han}+)/gu, '$1 ').trim();
-                if (transcript) {
-                    keywordInput.value = transcript;
-                    showImage();
-                }
-                keywordInput.classList.remove('speech-active');
-                searchButton.style.background = 'rgba(0, 123, 255, 0.8)';
-            };
-
-            recognition.onerror = (event) => {
-                if (recognition.lang === 'yue-HK') {
-                    recognition.lang = 'cmn-Hans-CN';
-                    recognition.start();
-                } else {
-                    keywordInput.value = '';
-                    keywordInput.placeholder = '語音識別失敗，請手動輸入';
-                    setTimeout(() => {
-                        keywordInput.placeholder = '輸入關鍵字';
-                    }, 3000);
-                    keywordInput.classList.remove('speech-active');
-                    searchButton.style.background = 'rgba(0, 123, 255, 0.8)';
-                }
-            };
-
-            recognition.onend = () => {
-                if (recognition.lang === 'cmn-Hans-CN' && !keywordInput.value) {
-                    keywordInput.placeholder = '語音識別失敗，請手動輸入';
-                    setTimeout(() => {
-                        keywordInput.placeholder = '輸入關鍵字';
-                    }, 3000);
-                }
-                keywordInput.classList.remove('speech-active');
-                searchButton.style.background = 'rgba(0, 123, 255, 0.8)';
-            };
-        } else {
-            searchButton.ondblclick = () => {
-                keywordInput.placeholder = '瀏覽器唔支援語音識別';
-                setTimeout(() => {
-                    keywordInput.placeholder = '輸入關鍵字';
-                }, 3000);
-            };
         }
 
         window.onload = async () => {
